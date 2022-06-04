@@ -5,8 +5,11 @@ contract Purchase {
     address payable public seller;
     address payable public buyer;
 
+    // Contract will be created, locked, released, or inactive
     enum State { Created, Locked, Release, Inactive }
-    // The state variable has a default value of the first member, `State.created`
+    
+    // The state (is a public) variable called 'state'
+    // variable has a default value that is initialized to the first member, `State.created`
     State public state;
 
     modifier condition(bool condition_) {
