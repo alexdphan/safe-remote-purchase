@@ -5,11 +5,10 @@ contract Purchase {
     address payable public seller;
     address payable public buyer;
 
-    // Contract will be created, locked, released, or inactive
+    mapping(address => uint256) public lastCalls;
+
     enum State { Created, Locked, Release, Inactive }
-    
-    // The state (is a public) variable called 'state'
-    // variable has a default value that is initialized to the first member, `State.created`
+    // The state variable has a default value of the first member, `State.created`
     State public state;
 
     modifier condition(bool condition_) {
@@ -25,6 +24,12 @@ contract Purchase {
     error InvalidState();
     /// The provided value has to be even.
     error ValueNotEven();
+
+
+    modifier fiveMin(address caller_) {
+    require(msg.sender != buyer || block.timestamp - lastCalls[msg.sender] >= 300, 'Need to wait 5 minutes'); // 300 seconds is 5 minutes
+    _;
+    }
 
     modifier onlyBuyer() {
         if (msg.sender != buyer)
@@ -84,6 +89,7 @@ contract Purchase {
         external
         inState(State.Created)
         condition(msg.value == (2 * value))
+        fiveMin(msg.sender)
         payable
     {
         emit PurchaseConfirmed();
@@ -121,5 +127,26 @@ contract Purchase {
         state = State.Inactive;
 
         seller.transfer(3 * value);
+    }
+  
+    /// This function combines confirmReceived and refundSeller
+    /// Combines into a function called completePurchase
+    /// When current state is locked AND
+    /// Either: The called is the buyer OR >5 min elapsed since buyer called comfirmPurchase
+    function completePurchase()
+        external
+        fiveMin(buyer)
+        inState(State.Locked)
+    {
+        emit ItemReceived();
+        emit SellerRefunded();
+        // It is important to change the state first because
+        // otherwise, the contracts called using `send` below
+        // can call in again here.
+        state = State.Release;
+
+        buyer.transfer(value);
+        seller.transfer(3 * value);
+
     }
 }
