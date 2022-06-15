@@ -31,10 +31,16 @@ contract Purchase {
     _;
     }
 
-    // change this
-    modifier onlyBuyer() {
-        if (msg.sender != buyer)
-            revert OnlyBuyer();
+    // old buyer modifier
+    // modifier onlyBuyer() {
+    //     if (msg.sender != buyer)
+    //         revert OnlyBuyer();
+    //     _;
+    // }
+
+    // new buyer modifier
+      modifier onlyBuyer() {
+        require(msg.sender == buyer);
         _;
     }
 
