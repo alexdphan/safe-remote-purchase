@@ -27,7 +27,7 @@ contract Purchase {
 
 
     modifier fiveMin(address caller_) {
-    require(msg.sender != buyer || block.timestamp - lastCalls[msg.sender] >= 300, 'Need to wait 5 minutes'); // 300 seconds is 5 minutes
+    require(msg.sender == buyer || block.timestamp - lastCalls[buyer] >= 300, 'Need to wait 5 minutes'); // 300 seconds is 5 minutes
     _;
     }
 
@@ -40,7 +40,7 @@ contract Purchase {
 
     // new buyer modifier
       modifier onlyBuyer() {
-        require(msg.sender == buyer);
+        require(msg.sender == buyer, 'You are not the buyer');
         _;
     }
 
@@ -69,6 +69,18 @@ contract Purchase {
         value = msg.value / 2;
         if ((2 * value) != msg.value)
             revert ValueNotEven();
+    }
+    // set a value first, then call get to return the value (w onlyBuyer modifier)
+    //this function sets a value to a specific address
+    //the data is saved to lastCalls on the block chain 
+    function set(address _addr, uint _i) public {
+        lastCalls[_addr] = _i;
+    }
+
+    //this function gets a value from a specific address in the map
+    //If a value was not set the function will return the default value of 0.
+    function get(address _addr) public view returns (uint) {
+        return lastCalls[_addr];
     }
 
     /// Abort the purchase and reclaim the ether.
