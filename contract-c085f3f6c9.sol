@@ -144,7 +144,7 @@ contract Purchase {
         // It is important to change the state first because
         // otherwise, the contracts called using `send` below
         // can call in again here.
-        state = State.Release;
+        state = State.Inactive;
 
         buyer.transfer(value);
         seller.transfer(3 * value);
