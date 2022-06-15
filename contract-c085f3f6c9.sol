@@ -70,7 +70,7 @@ contract Purchase {
         if ((2 * value) != msg.value)
             revert ValueNotEven();
     }
-    // set a value first, then call get to return the value (w onlyBuyer modifier)
+    // set a value first, then call get to return the value
     //this function sets a value to a specific address
     //the data is saved to lastCalls on the block chain 
     function set(address _addr, uint _i) public {
