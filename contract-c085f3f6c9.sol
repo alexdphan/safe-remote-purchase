@@ -4,8 +4,6 @@ contract Purchase {
     uint public value;
     address payable public seller;
     address payable public buyer;
-    uint public buyerCalled;
-
     mapping(address => uint256) public lastCalls;
 
     enum State { Created, Locked, Release, Inactive }
@@ -28,7 +26,7 @@ contract Purchase {
 
 
     modifier fiveMin(address caller_) {
-    require(msg.sender == buyer || block.timestamp - buyerCalled >= 300, 'Need to wait 5 minutes'); // 300 seconds is 5 minutes
+    require(msg.sender == buyer || block.timestamp - lastCalls[buyer] >= 300, 'Need to wait 5 minutes'); // 300 seconds is 5 minutes
     _;
     }
 
@@ -100,9 +98,6 @@ contract Purchase {
         payable
     {
         emit PurchaseConfirmed();
-        buyer = payable(msg.sender);
-        lastCalls[buyer] = buyerCalled;
-        buyerCalled;
         state = State.Locked;
     }
 
@@ -118,7 +113,6 @@ contract Purchase {
         // otherwise, the contracts called using `send` below
         // can call in again here.
         state = State.Release;
-
         buyer.transfer(value);
     }
 
@@ -134,7 +128,6 @@ contract Purchase {
         // otherwise, the contracts called using `send` below
         // can call in again here.
         state = State.Inactive;
-
         seller.transfer(3 * value);
     }
   
