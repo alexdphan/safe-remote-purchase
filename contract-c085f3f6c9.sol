@@ -24,9 +24,11 @@ contract Purchase {
     /// The provided value has to be even.
     error ValueNotEven();
 
-
+    // confirmPurchase 
     modifier fiveMin(address caller_) {
-    require(msg.sender == buyer || block.timestamp - lastCalls[buyer] >= 300, 'Need to wait 5 minutes'); // 300 seconds is 5 minutes
+    require(msg.sender == buyer || block.timestamp - lastCalls[buyer] >= 300, 'Need to wait 5 minutes'); // 300 seconds is 5 minutes can replace with 5 minutes
+    // make state unlocked, checks should be done before mods
+    // check state, after all the things are mapping
     _;
     }
 
@@ -99,6 +101,8 @@ contract Purchase {
     {
         emit PurchaseConfirmed();
         state = State.Locked;
+        buyer = payable(msg.sender);
+        lastCalls[msg.sender] = block.timestamp;
     }
 
     /// Confirm that you (the buyer) received the item.
@@ -137,7 +141,7 @@ contract Purchase {
     /// Either: The called is the buyer OR >5 min elapsed since buyer called comfirmPurchase
     function completePurchase()
         external
-        fiveMin(buyer)
+        fiveMin(msg.sender)
         inState(State.Locked)
     {
         emit ItemReceived();
@@ -149,6 +153,5 @@ contract Purchase {
 
         buyer.transfer(value);
         seller.transfer(3 * value);
-
     }
 }
